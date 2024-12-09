@@ -34,7 +34,7 @@ $app->get('/groups/{id}/messages', function ($request, $response, $args) {
     $stmt->execute(['group_id' => $groupId]);
     $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Manually encode to JSON and set the content type header
+    //set header and encode to JSON
     $response->getBody()->write(json_encode($messages));
     return $response->withHeader('Content-Type', 'application/json');
 });
