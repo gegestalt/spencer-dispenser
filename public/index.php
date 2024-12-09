@@ -1,11 +1,10 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../src/database.php'; // Include the database connection
+require_once __DIR__ . '/../src/database.php'; #database connection
 
 use Slim\Factory\AppFactory;
 use DI\Container;
 
-// Create the container
 $container = new Container();
 
 AppFactory::setContainer($container);
@@ -14,7 +13,7 @@ $app = AppFactory::create();
 $app->addErrorMiddleware(true, true, true);
 
 $app->get('/groups', function ($request, $response, $args) {
-    $db = getDatabaseConnection();  // Get database connection
+    $db = getDatabaseConnection();   #database connection 
     $stmt = $db->query('SELECT * FROM groups');
     $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -22,7 +21,7 @@ $app->get('/groups', function ($request, $response, $args) {
     return $response->withHeader('Content-Type', 'application/json');
 });
 
-$app->get('/groups/{id}/messages', function ($request, $response, $args) {
+$app->get('/groups/{id}/messages', function ($request, $response, $args) { 
     $groupId = $args['id'];
     $db = getDatabaseConnection();  
     $stmt = $db->prepare('
@@ -39,5 +38,4 @@ $app->get('/groups/{id}/messages', function ($request, $response, $args) {
     return $response->withHeader('Content-Type', 'application/json');
 });
 
-// Run the application
 $app->run();
