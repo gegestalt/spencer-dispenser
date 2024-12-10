@@ -48,6 +48,10 @@ class ComposerStaticInit2ca11f2551d1f94982a82cd0453b300b
             'DeepCopy\\' => 9,
             'DI\\' => 3,
         ),
+        'A' => 
+        array (
+            'App\\' => 4,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
@@ -108,6 +112,10 @@ class ComposerStaticInit2ca11f2551d1f94982a82cd0453b300b
         'DI\\' => 
         array (
             0 => __DIR__ . '/..' . '/php-di/php-di/src',
+        ),
+        'App\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/src',
         ),
     );
 

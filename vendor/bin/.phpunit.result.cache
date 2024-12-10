@@ -1,1 +1,1 @@
-{"version":1,"defects":{"MessageTest::testSendMessage":7},"times":{"MessageTest::testSendMessage":0.002}}
+{"version":1,"defects":{"MessageTest::testSendMessage":8},"times":{"MessageTest::testSendMessage":0.003,"MessageTest::testGetMessagesByGroup":0.001}}
