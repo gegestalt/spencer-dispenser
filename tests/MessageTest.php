@@ -36,4 +36,28 @@ class MessageTest extends TestCase {
         $this->assertNotEmpty($messages);
         $this->assertEquals('Test message', $messages[0]['content']);
     }
+
+    public function testSendMessageToGroupUserDoesNotBelongTo() {
+        $this->db->exec("INSERT INTO users (id, username) VALUES (2, 'otheruser')");
+        $this->db->exec("INSERT INTO groups (id, name) VALUES (2, 'Another Group')");
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('User is not a member of the group');
+
+        $stmt = $this->db->prepare('
+            SELECT COUNT(*) 
+            FROM group_memberships 
+            WHERE group_id = :group_id AND user_id = :user_id
+        ');
+        $stmt->execute([
+            'group_id' => 2,
+            'user_id' => 2,
+        ]);
+
+        if ($stmt->fetchColumn() == 0) {
+            throw new Exception('User is not a member of the group');
+        }
+
+        MessageModel::send($this->db, 2, 2, 'Invalid message');
+    }
 }
