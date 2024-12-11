@@ -2,6 +2,9 @@
 
 use PHPUnit\Framework\TestCase;
 
+// Include the database connection
+require __DIR__ . '/../src/database.php';
+
 class GroupTest extends TestCase {
     private $db;
 
