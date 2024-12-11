@@ -9,13 +9,17 @@ class GroupTest extends TestCase {
     private $db;
 
     protected function setUp(): void {
-        $this->db = getDatabaseConnection();
+        $this->db = new PDO('sqlite::memory:'); // Use in-memory database for testing
+        $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        // Verify the database has tables
-        $tables = $this->db->query("SELECT name FROM sqlite_master WHERE type='table'")->fetchAll(PDO::FETCH_COLUMN);
-        if (!in_array('groups', $tables)) {
-            throw new RuntimeException('Database does not have required tables. Run the seed script.');
-        }
+        // Load the schema
+        $schema = file_get_contents(__DIR__ . '/../database/schema.sql');
+        $this->db->exec($schema);
+
+        // Insert minimal test data
+        $this->db->exec("INSERT INTO users (id, username) VALUES (1, 'Alice')");
+        $this->db->exec("INSERT INTO groups (id, name) VALUES (1, 'General')");
+        $this->db->exec("INSERT INTO group_memberships (user_id, group_id) VALUES (1, 1)");
     }
 
     public function testCreateGroup() {
@@ -58,8 +62,14 @@ class GroupTest extends TestCase {
     }
 
     protected function tearDown(): void {
+        $this->db->exec("DELETE FROM messages");
+        $this->db->exec("DELETE FROM group_memberships");
+        $this->db->exec("DELETE FROM groups");
+        $this->db->exec("DELETE FROM users");
+    
         $this->db = null;
     }
+    
 }
 
 class Group {

@@ -25,7 +25,7 @@ function seedDatabase(PDO $db) {
         $groupStmt->execute(['id' => $group['id'], 'name' => $group['name']]);
     }
 
-    // Seed group memberships
+    // Seed memberships
     $memberships = [
         ['user_id' => 1, 'group_id' => 1],
         ['user_id' => 2, 'group_id' => 1],
@@ -53,4 +53,11 @@ function seedDatabase(PDO $db) {
     }
 
     echo "Database seeded successfully.\n";
+}
+
+try {
+    $db = getDatabaseConnection();
+    seedDatabase($db);
+} catch (PDOException $e) {
+    echo "Error seeding database: " . $e->getMessage() . "\n";
 }

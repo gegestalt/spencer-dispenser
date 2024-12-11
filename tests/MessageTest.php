@@ -44,6 +44,12 @@ class MessageTest extends TestCase {
     }
 
     protected function tearDown(): void {
+        $this->db->exec("DELETE FROM messages");
+        $this->db->exec("DELETE FROM group_memberships");
+        $this->db->exec("DELETE FROM groups");
+        $this->db->exec("DELETE FROM users");
+    
         $this->db = null;
     }
+    
 }
