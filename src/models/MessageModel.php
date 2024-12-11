@@ -24,6 +24,7 @@ class MessageModel {
             'user_id' => $user_id,
             'content' => $content,
         ]);
+
         return (int)$db->lastInsertId();
     }
 
@@ -40,8 +41,11 @@ class MessageModel {
             FROM messages m
             JOIN users u ON m.user_id = u.id
             WHERE m.group_id = :group_id
+            ORDER BY m.created_at ASC
         ');
+
         $stmt->execute(['group_id' => $group_id]);
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
