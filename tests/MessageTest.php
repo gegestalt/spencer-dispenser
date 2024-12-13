@@ -12,7 +12,6 @@ class MessageTest extends TestCase {
     protected function setUp(): void {
         $this->db = getDatabaseConnection();
 
-        // Verify the database has tables
         $tables = $this->db->query("SELECT name FROM sqlite_master WHERE type='table'")->fetchAll(PDO::FETCH_COLUMN);
         if (!in_array('messages', $tables)) {
             throw new RuntimeException('Database does not have required tables. Run the seed script.');

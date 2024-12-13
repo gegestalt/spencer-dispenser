@@ -23,7 +23,6 @@ class CreateUserTest extends TestCase {
         $this->app = AppFactory::create();
         $this->app->addBodyParsingMiddleware();
 
-        // Register the user creation route
         (require __DIR__ . '/../src/routes/users.php')($this->app);
     }
 

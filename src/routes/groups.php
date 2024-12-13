@@ -66,7 +66,6 @@ return function (App $app) {
             $stmt = $db->prepare('INSERT INTO group_memberships (user_id, group_id) VALUES (:user_id, :group_id)');
             $stmt->execute(['user_id' => $userId, 'group_id' => $groupId]);
 
-            // Return success response
             $response->getBody()->write(json_encode([
                 'success' => true,
                 'user_id' => $userId,
