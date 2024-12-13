@@ -42,5 +42,7 @@ $app->get('/groups/{id}/messages', function ($request, $response, $args) {
 });
 
 (require __DIR__ . '/../src/routes/messages.php')($app);
+(require __DIR__ . '/../src/routes/groups.php')($app);
+
 
 $app->run();
