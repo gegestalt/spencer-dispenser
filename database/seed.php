@@ -20,7 +20,6 @@ function recreateSchema(PDO $db) {
 }
 
 function seedDatabase(PDO $db) {
-    // Generate 15 users with unique random IDs and usernames
     $users = [];
     for ($i = 1; $i <= 15; $i++) {
         $users[] = [
@@ -34,7 +33,6 @@ function seedDatabase(PDO $db) {
         $userStmt->execute(['id' => $user['id'], 'username' => $user['username']]);
     }
 
-    // Add 7 groups with interesting names
     $groups = [
         ['name' => 'Tech Innovators'],
         ['name' => 'Gaming Legends'],
@@ -93,13 +91,10 @@ function seedDatabase(PDO $db) {
 try {
     $db = getDatabaseConnection();
 
-    // Clear existing database
     clearDatabase($db);
 
-    // Recreate schema
     recreateSchema($db);
 
-    // Seed the database
     seedDatabase($db);
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
