@@ -61,15 +61,41 @@ class GroupTest extends TestCase {
         $this->assertNotEmpty($membership);
     }
 
+    public function testAnyUserCanJoinAnyGroup() {
+        $this->db->exec("INSERT INTO users (username) VALUES ('User1')");
+        $userId1 = $this->db->lastInsertId();
+        $this->db->exec("INSERT INTO users (username) VALUES ('User2')");
+        $userId2 = $this->db->lastInsertId();
+
+        $groupId1 = Group::create($this->db, 'Group1');
+        $groupId2 = Group::create($this->db, 'Group2');
+
+        $this->assertTrue(Group::join($this->db, $userId1, $groupId1));
+
+        $this->assertTrue(Group::join($this->db, $userId1, $groupId2));
+
+        $this->assertTrue(Group::join($this->db, $userId2, $groupId1));
+
+        $stmt = $this->db->prepare('SELECT * FROM group_memberships WHERE user_id = :user_id AND group_id = :group_id');
+
+        $stmt->execute(['user_id' => $userId1, 'group_id' => $groupId1]);
+        $this->assertNotEmpty($stmt->fetch(PDO::FETCH_ASSOC));
+
+        $stmt->execute(['user_id' => $userId1, 'group_id' => $groupId2]);
+        $this->assertNotEmpty($stmt->fetch(PDO::FETCH_ASSOC));
+
+        $stmt->execute(['user_id' => $userId2, 'group_id' => $groupId1]);
+        $this->assertNotEmpty($stmt->fetch(PDO::FETCH_ASSOC));
+    }
+
     protected function tearDown(): void {
         $this->db->exec("DELETE FROM messages");
         $this->db->exec("DELETE FROM group_memberships");
         $this->db->exec("DELETE FROM groups");
         $this->db->exec("DELETE FROM users");
-    
+
         $this->db = null;
     }
-    
 }
 
 class Group {

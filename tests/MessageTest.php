@@ -34,7 +34,6 @@ class MessageTest extends TestCase {
 
         $this->assertEquals('Hello, world!', $message['content']);
     }
-
     public function testGetMessagesByGroup() {
         $this->db->exec("INSERT INTO messages (group_id, user_id, content) VALUES (1, 1, 'Test message')");
         $messages = MessageModel::getByGroup($this->db, 1);
@@ -42,7 +41,6 @@ class MessageTest extends TestCase {
         $this->assertNotEmpty($messages);
         $this->assertEquals('Test message', $messages[0]['content']);
     }
-
     protected function tearDown(): void {
         $this->db->exec("DELETE FROM messages");
         $this->db->exec("DELETE FROM group_memberships");

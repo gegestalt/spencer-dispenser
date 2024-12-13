@@ -1,4 +1,5 @@
 <?php
+
 require __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../src/database.php'; // Database connection
 
@@ -10,8 +11,10 @@ $container = new Container();
 AppFactory::setContainer($container);
 $app = AppFactory::create();
 
-$app->addErrorMiddleware(true, true, true); 
-$app->addBodyParsingMiddleware(); 
+$app->addErrorMiddleware(true, true, true);
+$app->addBodyParsingMiddleware();
+
+(require __DIR__ . '/../src/routes/users.php')($app);
 
 $app->get('/groups', function ($request, $response) {
     $db = getDatabaseConnection();
@@ -38,7 +41,6 @@ $app->get('/groups/{id}/messages', function ($request, $response, $args) {
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 
-
-(require __DIR__ . '/../src/routes/messages.php')($app); // register POST on messages.php routes
+(require __DIR__ . '/../src/routes/messages.php')($app);
 
 $app->run();

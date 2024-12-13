@@ -2,62 +2,105 @@
 
 require __DIR__ . '/../src/database.php';
 
+function clearDatabase(PDO $db) {
+    $tables = ['messages', 'group_memberships', 'groups', 'users'];
+    foreach ($tables as $table) {
+        $db->exec("DROP TABLE IF EXISTS $table");
+    }
+    echo "Database cleared successfully.\n";
+}
+
+function recreateSchema(PDO $db) {
+    $schema = file_get_contents(__DIR__ . '/../database/schema.sql');
+    if (!$schema) {
+        throw new Exception("Failed to load schema file.");
+    }
+    $db->exec($schema);
+    echo "Schema recreated successfully.\n";
+}
+
 function seedDatabase(PDO $db) {
-    // Seed users
-    $users = [
-        ['id' => 1, 'username' => 'Alice'],
-        ['id' => 2, 'username' => 'Bob'],
-        ['id' => 3, 'username' => 'Charlie']
-    ];
+    // Generate 15 users with unique random IDs and usernames
+    $users = [];
+    for ($i = 1; $i <= 15; $i++) {
+        $users[] = [
+            'id' => random_int(1000, 9999), // Random unique ID
+            'username' => 'User' . $i
+        ];
+    }
+
     $userStmt = $db->prepare('INSERT INTO users (id, username) VALUES (:id, :username)');
     foreach ($users as $user) {
         $userStmt->execute(['id' => $user['id'], 'username' => $user['username']]);
     }
 
-    // Seed groups
+    // Add 7 groups with interesting names
     $groups = [
-        ['id' => 1, 'name' => 'General'],
-        ['id' => 2, 'name' => 'Sports'],
-        ['id' => 3, 'name' => 'Technology']
+        ['name' => 'Tech Innovators'],
+        ['name' => 'Gaming Legends'],
+        ['name' => 'Book Enthusiasts'],
+        ['name' => 'Fitness Gurus'],
+        ['name' => 'Crypto Pioneers'],
+        ['name' => 'AI Thinkers'],
+        ['name' => 'Travel Explorers']
     ];
-    $groupStmt = $db->prepare('INSERT INTO groups (id, name) VALUES (:id, :name)');
+
+    $groupStmt = $db->prepare('INSERT INTO groups (name) VALUES (:name)');
     foreach ($groups as $group) {
-        $groupStmt->execute(['id' => $group['id'], 'name' => $group['name']]);
+        $groupStmt->execute(['name' => $group['name']]);
     }
 
-    // Seed memberships
-    $memberships = [
-        ['user_id' => 1, 'group_id' => 1],
-        ['user_id' => 2, 'group_id' => 1],
-        ['user_id' => 3, 'group_id' => 2]
-    ];
+    // Assign users to random groups
+    $groupIds = $db->query('SELECT id FROM groups')->fetchAll(PDO::FETCH_COLUMN);
+    $userIds = $db->query('SELECT id FROM users')->fetchAll(PDO::FETCH_COLUMN);
+
     $membershipStmt = $db->prepare('INSERT INTO group_memberships (user_id, group_id) VALUES (:user_id, :group_id)');
-    foreach ($memberships as $membership) {
-        $membershipStmt->execute(['user_id' => $membership['user_id'], 'group_id' => $membership['group_id']]);
+    foreach ($userIds as $userId) {
+        $joinedGroups = array_rand($groupIds, random_int(1, 3)); // 1-3 random groups
+        foreach ((array) $joinedGroups as $groupIndex) {
+            $membershipStmt->execute([
+                'user_id' => $userId,
+                'group_id' => $groupIds[$groupIndex]
+            ]);
+        }
     }
 
-    // Seed messages
+    // Add some messages to random groups
     $messages = [
-        ['group_id' => 1, 'user_id' => 1, 'content' => 'Hello everyone!'],
-        ['group_id' => 1, 'user_id' => 2, 'content' => 'Hi Alice!'],
-        ['group_id' => 2, 'user_id' => 3, 'content' => 'Who watched the game last night?'],
-        ['group_id' => 3, 'user_id' => 1, 'content' => 'Has anyone tried the new AI tools?']
+        'This is amazing!',
+        'Anyone tried this before?',
+        'What are your thoughts on this topic?',
+        'Let\'s meet up soon!',
+        'Check out this cool feature.',
+        'Can you help with this issue?',
+        'What\'s the best resource for this?'
     ];
+
     $messageStmt = $db->prepare('INSERT INTO messages (group_id, user_id, content) VALUES (:group_id, :user_id, :content)');
-    foreach ($messages as $message) {
-        $messageStmt->execute([
-            'group_id' => $message['group_id'],
-            'user_id' => $message['user_id'],
-            'content' => $message['content']
-        ]);
+    foreach ($groupIds as $groupId) {
+        foreach (array_rand($userIds, random_int(3, 5)) as $userIndex) {
+            $messageStmt->execute([
+                'group_id' => $groupId,
+                'user_id' => $userIds[$userIndex],
+                'content' => $messages[array_rand($messages)]
+            ]);
+        }
     }
 
-    echo "Database seeded successfully.\n";
+    echo "Database seeded successfully with 15 users, 7 groups, and messages.\n";
 }
 
 try {
     $db = getDatabaseConnection();
+
+    // Clear existing database
+    clearDatabase($db);
+
+    // Recreate schema
+    recreateSchema($db);
+
+    // Seed the database
     seedDatabase($db);
-} catch (PDOException $e) {
-    echo "Error seeding database: " . $e->getMessage() . "\n";
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage() . "\n";
 }
