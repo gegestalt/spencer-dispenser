@@ -20,6 +20,7 @@ function recreateSchema(PDO $db) {
 }
 
 function seedDatabase(PDO $db) {
+    // Seed Users
     $users = [];
     for ($i = 1; $i <= 15; $i++) {
         $users[] = [
@@ -33,6 +34,7 @@ function seedDatabase(PDO $db) {
         $userStmt->execute(['id' => $user['id'], 'username' => $user['username']]);
     }
 
+    // Seed Groups
     $groups = [
         ['name' => 'Tech Innovators'],
         ['name' => 'Gaming Legends'],
@@ -43,15 +45,18 @@ function seedDatabase(PDO $db) {
         ['name' => 'Travel Explorers']
     ];
 
-    $groupStmt = $db->prepare('INSERT INTO groups (name) VALUES (:name)');
+    $userIds = $db->query('SELECT id FROM users')->fetchAll(PDO::FETCH_COLUMN); // Get all user IDs
+    $groupStmt = $db->prepare('INSERT INTO groups (name, created_by, created_at) VALUES (:name, :created_by, :created_at)');
     foreach ($groups as $group) {
-        $groupStmt->execute(['name' => $group['name']]);
+        $groupStmt->execute([
+            'name' => $group['name'],
+            'created_by' => $userIds[array_rand($userIds)], // Assign a random user as the creator
+            'created_at' => date('Y-m-d H:i:s') // Current timestamp
+        ]);
     }
 
-    // Assign users to random groups
+    // Assign Users to Random Groups
     $groupIds = $db->query('SELECT id FROM groups')->fetchAll(PDO::FETCH_COLUMN);
-    $userIds = $db->query('SELECT id FROM users')->fetchAll(PDO::FETCH_COLUMN);
-
     $membershipStmt = $db->prepare('INSERT INTO group_memberships (user_id, group_id) VALUES (:user_id, :group_id)');
     foreach ($userIds as $userId) {
         $joinedGroups = array_rand($groupIds, random_int(1, 3)); // 1-3 random groups
@@ -63,7 +68,7 @@ function seedDatabase(PDO $db) {
         }
     }
 
-    // Add some messages to random groups
+    // Add Messages to Random Groups
     $messages = [
         'This is amazing!',
         'Anyone tried this before?',
@@ -74,13 +79,14 @@ function seedDatabase(PDO $db) {
         'What\'s the best resource for this?'
     ];
 
-    $messageStmt = $db->prepare('INSERT INTO messages (group_id, user_id, content) VALUES (:group_id, :user_id, :content)');
+    $messageStmt = $db->prepare('INSERT INTO messages (group_id, user_id, content, created_at) VALUES (:group_id, :user_id, :content, :created_at)');
     foreach ($groupIds as $groupId) {
         foreach (array_rand($userIds, random_int(3, 5)) as $userIndex) {
             $messageStmt->execute([
                 'group_id' => $groupId,
                 'user_id' => $userIds[$userIndex],
-                'content' => $messages[array_rand($messages)]
+                'content' => $messages[array_rand($messages)],
+                'created_at' => date('Y-m-d H:i:s')
             ]);
         }
     }

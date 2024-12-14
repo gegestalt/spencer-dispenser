@@ -3,22 +3,68 @@
 use Slim\App;
 
 return function (App $app) {
+    // Create a group
     $app->post('/groups', function ($request, $response) {
         $db = getDatabaseConnection();
         $data = $request->getParsedBody();
 
-        if (empty($data['name'])) {
-            $response->getBody()->write(json_encode(['error' => 'Group name is required.']));
+        if (empty($data['name']) || empty($data['username'])) {
+            $response->getBody()->write(json_encode(['error' => 'Group name and username are required.']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
         }
 
-        $stmt = $db->prepare('INSERT INTO groups (name) VALUES (:name)');
-        $stmt->execute(['name' => $data['name']]);
+        $groupName = $data['name'];
+        $username = $data['username'];
 
-        $response->getBody()->write(json_encode(['group_id' => $db->lastInsertId()]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+        try {
+            // Check if the group name already exists
+            $stmt = $db->prepare('SELECT id FROM groups WHERE name = :name');
+            $stmt->execute(['name' => $groupName]);
+            if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+                $response->getBody()->write(json_encode(['error' => 'Group name already exists.']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            }
+
+            // Check if the user exists
+            $stmt = $db->prepare('SELECT id FROM users WHERE username = :username');
+            $stmt->execute(['username' => $username]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user) {
+                $response->getBody()->write(json_encode(['error' => 'User does not exist.']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+            }
+
+            $userId = $user['id'];
+
+            // Create the group
+            $stmt = $db->prepare('
+                INSERT INTO groups (name, created_by, created_at) 
+                VALUES (:name, :created_by, CURRENT_TIMESTAMP)
+            ');
+            $stmt->execute([
+                'name' => $groupName,
+                'created_by' => $userId
+            ]);
+
+            $groupId = $db->lastInsertId();
+
+            // Return success response
+            $response->getBody()->write(json_encode([
+                'success' => true,
+                'group_id' => $groupId,
+                'group_name' => $groupName,
+                'created_by' => $username,
+                'created_at' => date('Y-m-d H:i:s')
+            ]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+        } catch (Exception $e) {
+            $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
     });
 
+    // Join a group
     $app->post('/groups/{group_id}/join', function ($request, $response, $args) {
         $db = getDatabaseConnection();
         $data = $request->getParsedBody();

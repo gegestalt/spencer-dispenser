@@ -18,37 +18,48 @@ class GroupTest extends TestCase {
 
         // Insert minimal test data
         $this->db->exec("INSERT INTO users (id, username) VALUES (1, 'Alice')");
-        $this->db->exec("INSERT INTO groups (id, name) VALUES (1, 'General')");
+        $this->db->exec("INSERT INTO groups (id, name, created_by, created_at) VALUES (1, 'General', 1, CURRENT_TIMESTAMP)");
         $this->db->exec("INSERT INTO group_memberships (user_id, group_id) VALUES (1, 1)");
     }
 
     public function testCreateGroup() {
-        $groupId = Group::create($this->db, 'Test Group');
+        $groupId = Group::create($this->db, 'New Group', 1);
         $this->assertIsNumeric($groupId);
 
         $stmt = $this->db->prepare('SELECT * FROM groups WHERE id = :id');
         $stmt->execute(['id' => $groupId]);
         $group = $stmt->fetch(PDO::FETCH_ASSOC);
+
         $this->assertNotEmpty($group);
-        $this->assertEquals('Test Group', $group['name']);
+        $this->assertEquals('New Group', $group['name']);
+        $this->assertEquals(1, $group['created_by']);
+        $this->assertNotEmpty($group['created_at']);
+    }
+
+    public function testCreateGroupWithDuplicateName() {
+        $this->expectException(PDOException::class);
+
+        // Try to create a group with an existing name
+        Group::create($this->db, 'General', 1);
     }
 
     public function testListGroups() {
-        Group::create($this->db, 'Group A');
-        Group::create($this->db, 'Group B');
+        Group::create($this->db, 'Group A', 1);
+        Group::create($this->db, 'Group B', 1);
 
         $stmt = $this->db->query('SELECT * FROM groups');
         $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $this->assertGreaterThanOrEqual(2, count($groups));
+        $this->assertGreaterThanOrEqual(3, count($groups)); // Includes the initial "General" group
     }
 
     public function testJoinGroup() {
-        // Add a user and a group
+        // Add a user
         $this->db->exec("INSERT INTO users (username) VALUES ('testuser')");
         $userId = $this->db->lastInsertId();
 
-        $groupId = Group::create($this->db, 'Joinable Group');
+        // Create a new group
+        $groupId = Group::create($this->db, 'Joinable Group', 1);
 
         // Join the group
         $joined = Group::join($this->db, $userId, $groupId);
@@ -67,13 +78,11 @@ class GroupTest extends TestCase {
         $this->db->exec("INSERT INTO users (username) VALUES ('User2')");
         $userId2 = $this->db->lastInsertId();
 
-        $groupId1 = Group::create($this->db, 'Group1');
-        $groupId2 = Group::create($this->db, 'Group2');
+        $groupId1 = Group::create($this->db, 'Group1', 1);
+        $groupId2 = Group::create($this->db, 'Group2', 1);
 
         $this->assertTrue(Group::join($this->db, $userId1, $groupId1));
-
         $this->assertTrue(Group::join($this->db, $userId1, $groupId2));
-
         $this->assertTrue(Group::join($this->db, $userId2, $groupId1));
 
         $stmt = $this->db->prepare('SELECT * FROM group_memberships WHERE user_id = :user_id AND group_id = :group_id');
@@ -99,9 +108,15 @@ class GroupTest extends TestCase {
 }
 
 class Group {
-    public static function create(PDO $db, string $name): int {
-        $stmt = $db->prepare('INSERT INTO groups (name) VALUES (:name)');
-        $stmt->execute(['name' => $name]);
+    public static function create(PDO $db, string $name, int $createdBy): int {
+        $stmt = $db->prepare('
+            INSERT INTO groups (name, created_by, created_at) 
+            VALUES (:name, :created_by, CURRENT_TIMESTAMP)
+        ');
+        $stmt->execute([
+            'name' => $name,
+            'created_by' => $createdBy
+        ]);
         return (int) $db->lastInsertId();
     }
 

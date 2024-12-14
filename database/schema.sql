@@ -5,8 +5,12 @@ CREATE TABLE users (
 
 CREATE TABLE groups (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE
+    name TEXT NOT NULL UNIQUE,
+    created_by INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users (id)
 );
+
 
 CREATE TABLE group_memberships (
     user_id INTEGER NOT NULL,
