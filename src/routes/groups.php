@@ -17,7 +17,6 @@ return function (App $app) {
         $username = $data['username'];
 
         try {
-            // Check if the group name already exists
             $stmt = $db->prepare('SELECT id FROM groups WHERE name = :name');
             $stmt->execute(['name' => $groupName]);
             if ($stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -25,7 +24,6 @@ return function (App $app) {
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
             }
 
-            // Check if the user exists
             $stmt = $db->prepare('SELECT id FROM users WHERE username = :username');
             $stmt->execute(['username' => $username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
