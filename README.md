@@ -39,7 +39,7 @@ Usage :
     Join to a group:
             POST: http://localhost:8000/groups/<group_id>/join
             {
-                "username":"username"
+                "user_id":"user_id"
             } 
         Depending on the users status of memebership server will return 200 on succsess or 400 if the user is already joined 
     ----------------------------------------
@@ -50,4 +50,5 @@ Usage :
         php -S localhost:8000 -t public   
 
     ---------------------------------------
-
+    Tests:
+    - I have tested both the database integration and functionality in my constructed tests thats why I have not used createMock for the assignment sake. Functionalities tested in the tests are applied to the general behavior  of the project. 
