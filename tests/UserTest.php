@@ -12,7 +12,7 @@ class CreateUserTest extends TestCase {
     private $db;
 
     protected function setUp(): void {
-        $this->db = new PDO('sqlite::memory:');
+        $this->db = new PDO('sqlite::memory:'); // Use an in-memory SQLite database
         $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $schema = file_get_contents(__DIR__ . '/../database/schema.sql');
@@ -39,6 +39,7 @@ class CreateUserTest extends TestCase {
         $this->assertArrayHasKey('username', $responseData);
         $this->assertEquals('TestUser', $responseData['username']);
 
+        // Verify the user exists in the database
         $stmt = $this->db->prepare('SELECT * FROM users WHERE username = :username');
         $stmt->execute(['username' => 'TestUser']);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -48,7 +49,7 @@ class CreateUserTest extends TestCase {
     }
 
     public function testCreateUserDuplicate() {
-        $this->db->exec("INSERT INTO users (id, username) VALUES (1234, 'ExistingUser')");
+        $this->db->exec("INSERT INTO users (username) VALUES ('ExistingUser')");
 
         $request = $this->createRequest('POST', '/users', ['username' => 'ExistingUser']);
         $response = $this->app->handle($request);
