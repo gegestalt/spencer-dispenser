@@ -9,13 +9,14 @@ class GroupTest extends TestCase {
     private $db;
 
     protected function setUp(): void {
-        $this->db = new PDO('sqlite::memory:'); // Use in-memory database for testing
+        $this->db = new PDO('sqlite::memory:');
         $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+    
+        $this->db->exec('PRAGMA foreign_keys = ON;');
+    
         $schema = file_get_contents(__DIR__ . '/../database/schema.sql');
         $this->db->exec($schema);
-
-        // Insert minimal test data
+    
         $this->db->exec("INSERT INTO users (id, username) VALUES (1, 'Alice')");
         $this->db->exec("INSERT INTO groups (id, name, created_by, created_at) VALUES (1, 'General', 1, CURRENT_TIMESTAMP)");
         $this->db->exec("INSERT INTO group_memberships (user_id, group_id) VALUES (1, 1)");
