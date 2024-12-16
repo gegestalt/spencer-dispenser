@@ -35,7 +35,19 @@ Usage :
 
         (will fetch all the groups from db.)
     Users can see the messages within any group, but they need to join to the group they want to send message to.
-
+    Create a new user:
+            POST: http:://localhost:8000/users
+            {
+                "username":"<username>"
+            }
+        will return 201 Created with,
+            {
+                "success": true,
+                "user_id": "<user_id>",
+                "username": "<username>"
+            }
+            on success; 
+            
     Join to a group:
             POST: http://localhost:8000/groups/<group_id>/join
             {
