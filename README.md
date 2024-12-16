@@ -24,10 +24,10 @@ Usage :
 
             POST: http://localhost:8000/groups/<group_id>/messages
             {
-                "user_id":5513,
-                "content": "Please do not promote other groups in this disscusion."
+                "user_id":<user_id>,
+                "content": "<message_content.>"
             }
-    See messages: 
+    See  messages: 
             GET: http://localhost:8000/groups/<group_id>/messages
 
     See all groups:
